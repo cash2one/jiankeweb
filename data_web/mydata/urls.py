@@ -1,7 +1,7 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
 
-from mydata.views import weather_chart_view
+from mydata.views import IndexView
 
 urlpatterns = [
-    url(r'line/charts/?', weather_chart_view),
+    url(r'dashboard/index/?', IndexView.as_view(), name='index'),
 ]

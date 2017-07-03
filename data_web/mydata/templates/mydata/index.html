@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+{% load staticfiles %}
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <!-- Meta, title, CSS, favicons, etc. -->
@@ -10,23 +11,23 @@
     <title>健客 | </title>
 
     <!-- Bootstrap -->
-    <link href="../../../static/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
     <!-- Font Awesome -->
-    <link href="../../../static/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="{% static 'font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
     <!-- NProgress -->
-    <link href="../../../static/nprogress/nprogress.css" rel="stylesheet">
+    <link href="{% static 'nprogress/nprogress.css' %}" rel="stylesheet">
     <!-- iCheck -->
-    <link href="../../../static/iCheck/skins/flat/green.css" rel="stylesheet">
+    <link href="{% static 'iCheck/skins/flat/green.css' %}" rel="stylesheet">
 	
     <!-- bootstrap-progressbar -->
-    <link href="../../../static/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css" rel="stylesheet">
+    <link href="{% static 'bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css' %}" rel="stylesheet">
     <!-- JQVMap -->
-    <link href="../../../static/jqvmap/dist/jqvmap.min.css" rel="stylesheet"/>
+    <link href="{% static 'jqvmap/dist/jqvmap.min.css' %}" rel="stylesheet"/>
     <!-- bootstrap-daterangepicker -->
-    <link href="../../../static/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet">
+    <link href="{% static 'bootstrap-daterangepicker/daterangepicker.css' %}" rel="stylesheet">
 
     <!-- Custom Theme Style -->
-    <link href="../../static/mydata/css/custom.min.css" rel="stylesheet">
+    <link href="{% static 'mydata/css/custom.min.css' %}" rel="stylesheet">
   </head>
 
   <body class="nav-md">

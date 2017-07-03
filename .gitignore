@@ -9,13 +9,13 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-build/
+#build/
 develop-eggs/
-dist/
+#dist/
 downloads/
 eggs/
 .eggs/
-lib/
+#lib/
 lib64/
 parts/
 sdist/
@@ -104,3 +104,5 @@ migrations/
 .*.*.sw*
 *.*~
 log/
+numpy==1.13.0
+plotly==2.0.11

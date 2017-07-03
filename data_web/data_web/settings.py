@@ -111,9 +111,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -126,6 +126,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
+#存放项目中公用的静态文件
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, "comm_static"),
+)
+
+#python manage.py collectstatic:将所有STATICFILES_DIRS中所有文件夹中的文件，以及各app中static中的文件都复制过来
+STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 LOGGING = {
         'version': 1,

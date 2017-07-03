@@ -1,12 +1,17 @@
 # -*- coding:utf-8 -*-
 
+import logging
+
 from django.shortcuts import render
+from django.views.generic import TemplateView
+
 from chartit import DataPool, Chart
 
 from mydata.models import MonthlyWeatherByCity
 
+logger = logging.getLogger('data')
 
-from chartit import DataPool, Chart
+
 
 def weather_chart_view(request):
     #Step 1: Create a DataPool with the data we want to retrieve.
@@ -42,3 +47,7 @@ def weather_chart_view(request):
 
     #Step 3: Send the chart object to the template.
     return render(request, 'mydata/weatherchart.html', {'weatherchart': cht})
+
+
+class IndexView(TemplateView):
+     template_name = "mydata/index.html"
