@@ -22,11 +22,14 @@ class SeriesCharts(object):
     def __init__(self):
         self.db_conn = CONN
 
-    def line_charts(self):
+    def line_chart(self):
         '''
         折线图
         '''
-        sql = 'select collect_time, sum(old_sale_num_30) sum_old, sum(IFNULL(old_sale_num_30,0) + IFNULL(sale_num_growth,0)) sum_new  from shw_tmall_baojian_week group by collect_time;'
+        sql = 'select collect_time, \
+                sum(old_sale_num_30) sum_old, \
+                sum(IFNULL(old_sale_num_30,0) + IFNULL(sale_num_growth,0)) sum_new \
+                from shw_tmall_baojian_week group by collect_time;'
         df = pd.read_sql(sql, self.db_conn)
         trace_old = go.Scatter(
                 x=df['collect_time'],
@@ -44,10 +47,23 @@ class SeriesCharts(object):
         data = [trace_old, trace_new]
         layout = dict(
                 height = 280,
+                width = 340,
                 #title = "Manually Set Date Range",
                 yaxis = dict(
-                    range = [0,300000]),
+                    autorange=False,
+                    showgrid=False,
+                    zeroline=False,
+                    showline=False,
+                    autotick=True,
+                    ticks='',
+                    showticklabels=False,
+                    range = [0,300000],
+                    ),
                 xaxis = dict(
+                    tickfont=dict(
+                        size=10,
+                        color='rgb(107, 107, 107)'
+                    ),
                     range = ['2017-07-03','2016-11-21']),
                 margin = dict(
                     l=45,
@@ -67,3 +83,122 @@ class SeriesCharts(object):
         tempHTML = tempHTML.replace('displaylogo:!0', 'displaylogo:!1')
         tempHTML = tempHTML.replace('modeBarButtonsToRemove:[]', 'modeBarButtonsToRemove:["sendDataToCloud"]')
         return tempHTML
+
+    def bar_chart(self):
+        '''
+        条形图
+        '''
+        sql = 'select sum(old_price) sum_old, \
+                sum(price) sum_new, \
+                jk_prod_name from shw_comweb_price_all group by jk_prod_name limit 5;'
+        df = pd.read_sql(sql, self.db_conn)
+        trace_old = go.Bar(
+            x=df['jk_prod_name'],
+            y=df['sum_old'],
+            name='原价',
+            marker=dict(
+                color='rgb(55, 83, 109)'
+            )
+        )
+        trace_new = go.Bar(
+            x=df['jk_prod_name'],
+            y=df['sum_new'],
+            name='新价',
+            marker=dict(
+                color='rgb(26, 118, 255)'
+            )
+        )
+        data = [trace_old, trace_new]
+        layout = go.Layout(
+            #title='US Export of Plastic Scrap',
+            xaxis=dict(
+                tickfont=dict(
+                    size=6,
+                    color='rgb(107, 107, 107)'
+                )
+            ),
+            yaxis=dict(
+                #title='Price (RMB)',
+                titlefont=dict(
+                    size=16,
+                    color='rgb(107, 107, 107)'
+                ),
+                tickfont=dict(
+                    size=14,
+                    color='rgb(107, 107, 107)'
+                )
+            ),
+            legend=dict(
+                x=0,
+                y=1.0,
+                bgcolor='rgba(255, 255, 255, 0)',
+                bordercolor='rgba(255, 255, 255, 0)'
+            ),
+            margin = dict(
+                l=35,
+                r=25,
+                b=55,
+                t=30
+                ),
+            barmode='group',
+            bargap=0.15,
+            bargroupgap=0.1
+        )
+        
+        fig = go.Figure(data=data, layout=layout)
+        #py.iplot(fig, filename='style-bar')
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False, show_link=False)
+        return plot_div
+
+    def pie_chart(self):
+        '''
+        饼图
+        '''
+        sql = 'select sum(float_home) s0, \
+                sum(float_prod) s1, sum(from_prod) s2, \
+                sum(wechat_mall) s3, sum(from_engine) s4, \
+                sum(from_other) s5, sum(imm_down) s6 \
+                from shw_mo_mall_down ;'
+        df = pd.read_sql(sql, self.db_conn)
+        labels =  [
+                "FloatHome",
+                "FloatProd",
+                "FromProd",
+                "WechatMall",
+                "FromEngine",
+                "FromOther",
+                "ImmDown"
+              ]
+        values = [df.s0[0], df.s1[0], df.s2[0], df.s3[0], df.s4[0], df.s5[0], df.s6[0]]
+        colors = ['#FEBFB3', '#E1396C', '#96D38C', '#D0F9B1', '#FF95CA', '#4EFEB3', '#46A3FF']
+        
+        trace = go.Pie(labels=labels, values=values,
+                       hoverinfo='label+percent', textinfo='value', 
+                       textfont=dict(size=10),
+                       marker=dict(colors=colors, 
+                                   line=dict(color='#FFFFFF', width=2)))
+        layout = go.Layout(height = 280,
+                           width = 750,
+                           autosize = False,
+                           margin = dict(
+                               l=85,
+                               r=35,
+                               b=35,
+                               t=15
+                               ),
+                           #title = 'Main title'
+                           )
+        fig = go.Figure(data = [trace], layout = layout) 
+        #py.iplot([trace], filename='styled_pie_chart')
+        plot_div = plot(fig, output_type='div', include_plotlyjs=False, show_link=False)
+        #plot_div = plot([trace], show_link=False, auto_open=False)[7:]
+        return plot_div
+
+
+
+
+
+
+
+
+

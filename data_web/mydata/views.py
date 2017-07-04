@@ -15,5 +15,12 @@ class IndexView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
-        context['plot'] = SeriesCharts().line_charts()
+        context['line_plot'] = SeriesCharts().line_chart()
+        context['bar_plot'] = SeriesCharts().bar_chart()
+        context['pie_plot'] = SeriesCharts().pie_chart()
         return context
+
+
+class TempPlotView(TemplateView):
+    template_name = "mydata/temp-plot.html"
+
