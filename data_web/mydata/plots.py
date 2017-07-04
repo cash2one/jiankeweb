@@ -1,5 +1,7 @@
 # -*- coding:utf-8 -*-
 
+import os
+
 import pandas as pd
 import MySQLdb
 import plotly.plotly as py
@@ -48,8 +50,8 @@ class SeriesCharts(object):
                 xaxis = dict(
                     range = ['2017-07-03','2016-11-21']),
                 margin = dict(
-                    l=65,
-                    r=50,
+                    l=45,
+                    r=75,
                     b=55,
                     t=30
                     )
@@ -57,6 +59,11 @@ class SeriesCharts(object):
         fig = dict(data=data, layout=layout)
         #import pdb
         #pdb.set_trace()
-        #plot_div = py.iplot(fig, filename = "Manually Set Range")
-        plot_div = plot(fig, output_type='div', include_plotlyjs=False)
-        return plot_div
+        #plot_div = plot(fig, output_type='div', include_plotlyjs=False, show_link=False)
+        HTMLlink = plot(fig, show_link=False, auto_open=False)[7:]
+        with open(HTMLlink, 'r') as plot_file :
+            tempHTML = plot_file.read()
+        os.remove(HTMLlink)
+        tempHTML = tempHTML.replace('displaylogo:!0', 'displaylogo:!1')
+        tempHTML = tempHTML.replace('modeBarButtonsToRemove:[]', 'modeBarButtonsToRemove:["sendDataToCloud"]')
+        return tempHTML
