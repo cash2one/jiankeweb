@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'chartit',
     'django_extensions',
+    'django_tables2',
 
     'mydata',
 ]
