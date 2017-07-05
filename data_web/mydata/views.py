@@ -45,14 +45,18 @@ class LoginView(TemplateView):
 class IndexView(TemplateView):
     template_name = "mydata/index.html"
 
-    def get_context_data(self, **kwargs):
-        context = super(IndexView, self).get_context_data(**kwargs)
-        context['line_plot'] = SeriesCharts().line_chart()
-        context['bar_plot'] = SeriesCharts().bar_chart()
-        context['pie_plot'] = SeriesCharts().pie_chart()
-        items = Person.objects.values('id', 'name', 'age', 'test')
-        context['items']  = items
-        return context
+    def get(self, request):
+        import pdb
+        pdb.set_trace()
+        if request.user.is_authenticated(): 
+            line_plot = SeriesCharts().line_chart()
+            bar_plot = SeriesCharts().bar_chart()
+            pie_plot = SeriesCharts().pie_chart()
+            items = Person.objects.values('id', 'name', 'age', 'test')
+        else:
+            return HttpResponseRedirect(reverse('mydata:login'))
+
+        return render(request, self.template_name, locals())
 
 
 class TablesView(TemplateView):
