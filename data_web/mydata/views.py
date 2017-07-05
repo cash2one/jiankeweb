@@ -6,16 +6,18 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.shortcuts import render, HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
-from django_tables2 import RequestConfig
-from django.contrib.auth import authenticate, login
+from django.contrib import auth
 
-from .tables import PersonTable
 from .plots import SeriesCharts
 from .models import Person
 from .forms import LoginForm
 
 logger = logging.getLogger('data')
 
+
+def logout(request):
+    auth.logout(request)
+    return HttpResponseRedirect(reverse('mydata:index'))
 
 class LoginView(TemplateView):
     template_name = "mydata/login.html"
@@ -31,10 +33,15 @@ class LoginView(TemplateView):
             logger.debug('\033[92m post data: {} \033[0m'.format(form.clean()))
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+            user = auth.authenticate(username=username, password=password)
             if user is not None and user.is_active:
-                login(request, user)
-                return HttpResponseRedirect(reverse('mydata:index'))
+                auth.login(request, user)
+                referer = request.META['HTTP_REFERER']
+                if 'next' in referer:
+                    url_name = 'mydata:{}'.format(referer.split('/')[-1])
+                else:
+                    url_name = 'mydata:index'
+                return HttpResponseRedirect(reverse(url_name))
             else:
                 return render(request, self.template_name, {'form': form,'password_is_wrong':True})
         else:
@@ -46,33 +53,27 @@ class IndexView(TemplateView):
     template_name = "mydata/index.html"
 
     def get(self, request):
-        import pdb
-        pdb.set_trace()
-        if request.user.is_authenticated(): 
+        #import pdb
+        #pdb.set_trace()
+        if request.user.is_authenticated():
             line_plot = SeriesCharts().line_chart()
             bar_plot = SeriesCharts().bar_chart()
             pie_plot = SeriesCharts().pie_chart()
             items = Person.objects.values('id', 'name', 'age', 'test')
+            return render(request, self.template_name, locals())
         else:
+            logout(request)
             return HttpResponseRedirect(reverse('mydata:login'))
-
-        return render(request, self.template_name, locals())
 
 
 class TablesView(TemplateView):
     template_name = "mydata/tables.html"
+    def get(self, request):
+        if request.user.is_authenticated():
+            return render(request, self.template_name, locals())
+        else:
+            return HttpResponseRedirect(reverse('mydata:login'))
 
 
 class TablesDynamicView(TemplateView):
     template_name = "mydata/tables_dynamic.html"
-
-class TempPlotView(TemplateView):
-    template_name = "mydata/temp-plot.html"
-
-
-def people(request):
-    table = PersonTable(Person.objects.all())
-    RequestConfig(request).configure(table)
-    return render(request, 'mydata/people.html', {'table': table})
-
-

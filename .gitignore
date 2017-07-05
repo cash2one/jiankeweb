@@ -106,3 +106,5 @@ migrations/
 log/
 numpy==1.13.0
 plotly==2.0.11
+settings.py
+plots.py

@@ -11,21 +11,21 @@ class Person(models.Model):
     name = models.CharField(max_length=100, verbose_name="full name")
     age = models.IntegerField( verbose_name="age")
     test = models.DateTimeField(default=datetime.datetime.now, verbose_name="age")
-    
+
 class Blog(models.Model):
     name = models.CharField(max_length=100)
     tagline = models.TextField()
 
     class meta:
         db_name = 'example_app_blog'
- 
+
 class Author(models.Model):
     name = models.CharField(max_length=50)
     email = models.EmailField()
 
     class meta:
         db_name = 'example_app_author'
- 
+
 class Entry(models.Model):
     blog = models.ForeignKey(Blog)
     headline = models.CharField(max_length=255)

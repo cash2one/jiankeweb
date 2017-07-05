@@ -18,7 +18,7 @@
     <link href="{% static 'nprogress/nprogress.css' %}" rel="stylesheet">
     <!-- iCheck -->
     <link href="{% static 'iCheck/skins/flat/green.css' %}" rel="stylesheet">
-	
+
     <!-- bootstrap-progressbar -->
     <link href="{% static 'bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css' %}" rel="stylesheet">
     <!-- JQVMap -->
@@ -134,7 +134,7 @@
                           </ul>
                         </li>
                     </ul>
-                  </li>                  
+                  </li>
                 </ul>
               </div>
 
@@ -171,11 +171,11 @@
               <ul class="nav navbar-nav navbar-right">
                 <li class="">
                   <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    健客
+                    {{ user.username }}
                     <span class=" fa fa-angle-down"></span>
                   </a>
                   <ul class="dropdown-menu dropdown-usermenu pull-right">
-                      <li><a href="{% url 'mydata:login' %}"><i class="fa fa-sign-out pull-right"></i> Log Out</a></li>
+                      <li><a href="{% url 'mydata:logout' %}"><i class="fa fa-sign-out pull-right"></i> Log Out</a></li>
                   </ul>
                 </li>
 
@@ -703,6 +703,6 @@
 
     <!-- Custom Theme Scripts -->
     <script src="../../static/mydata//js/custom.min.js"></script>
-	
+
   </body>
 </html>
