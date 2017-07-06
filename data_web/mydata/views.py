@@ -35,6 +35,8 @@ class LoginView(TemplateView):
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
             user = auth.authenticate(username=username, password=password)
+            #import pdb
+            #pdb.set_trace()
             if user is not None and user.is_active:
                 auth.login(request, user)
                 referer = request.META['HTTP_REFERER']
@@ -54,8 +56,6 @@ class IndexView(TemplateView):
     template_name = "mydata/index.html"
 
     def get(self, request):
-        #import pdb
-        #pdb.set_trace()
         if request.user.is_authenticated():
             line_plot = SeriesCharts().line_chart()
             bar_plot = SeriesCharts().bar_chart()

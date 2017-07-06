@@ -5,5 +5,5 @@ import  mydata
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^mydata/', include('mydata.urls', namespace='mydata')),
+    url(r'^dashboard/', include('mydata.urls', namespace='mydata')),
 ]
