@@ -14,7 +14,7 @@ from .plots import SeriesCharts
 from .models import Person
 from .forms import LoginForm
 
-logger = logging.getLogger('data_request')
+logger = logging.getLogger('data')
 
 
 def logout(request):
@@ -72,6 +72,31 @@ class LoginView(TemplateView):
         else:
             logger.error("\033[92m LoginView: form.errors:{} \033[0m".format(form.errors))
         return render(request, self.template_name, {'form': form})
+
+class TestView(TemplateView):
+    template_name = "mydata/00test.html"
+
+    def get(self, request):
+        if request.user.is_authenticated():
+            pie_plot = SeriesCharts().test_bar_chart()
+            return render(request, self.template_name, locals())
+        else:
+            logout(request)
+            return HttpResponseRedirect(reverse('mydata:login'))
+
+
+class Test2View(TemplateView):
+    template_name = "mydata/00test2.html"
+
+    def get(self, request):
+        if request.user.is_authenticated():
+            pie_plot = SeriesCharts().test2_bar_chart()
+            return render(request, self.template_name, locals())
+        else:
+            logout(request)
+            return HttpResponseRedirect(reverse('mydata:login'))
+
+
 
 
 class IndexView(TemplateView):

@@ -8,14 +8,28 @@ import plotly.plotly as py
 from plotly.offline import plot
 import plotly.graph_objs as go
 
-CONN = MySQLdb.connect(
-        host='127.0.0.1',
-        user='root',
-        passwd='jianke@123',
-        db='big_data_platform',
-        port=3306,
+from data_web.settings import DB_6_HOST,\
+        DB_6_USER, DB_6_PASSWD, DB_6_PORT,\
+        DB_6, DB_HOST, DB_USER, DB_PASSWD, DB_PORT
+
+CONN_6 = MySQLdb.connect(
+        host=DB_6_HOST,
+        user=DB_6_USER,
+        passwd=DB_6_PASSWD,
+        db=DB_6,
+        port=DB_6_PORT,
         charset='utf8'
       )
+
+CONN = MySQLdb.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        passwd=DB_PASSWD,
+        db='big_data_platform',
+        port=DB_PORT,
+        charset='utf8'
+      )
+
 
 class SeriesCharts(object):
 
