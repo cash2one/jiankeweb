@@ -14,7 +14,7 @@ from .plots import SeriesCharts
 from .models import Person
 from .forms import LoginForm
 
-logger = logging.getLogger('data')
+logger = logging.getLogger('data_request')
 
 
 def logout(request):
@@ -101,3 +101,19 @@ class TablesView(TemplateView):
 
 class TablesDynamicView(TemplateView):
     template_name = "mydata/tables_dynamic.html"
+    def get(self, request):
+        logger.debug('{}'.format(request.META['REMOTE_ADDR']))
+        return render(request, self.template_name, locals())
+
+
+
+
+
+
+
+
+
+
+
+
+
