@@ -69,14 +69,25 @@ WSGI_APPLICATION = 'data_web.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
+DB_6_HOST = "172.17.240.6"
+DB_6_USER = "" 
+DB_6_PASSWD = ""
+DB_6 = "scrapy"
+DB_6_PORT = 3306 
+
+DB_HOST = '172.17.240.5' 
+DB_USER = '' 
+DB_PASSWD = ''
+DB = 'data_web' 
+DB_PORT = 3306 
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'data_web',
-        'USER': 'root',
-        'PASSWORD': 'jianke@123',
-        'HOST': '127.0.0.1',
+        'NAME': DB,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWD,
+        'HOST': DB_HOST,
     }
 }
 
