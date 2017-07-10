@@ -240,6 +240,11 @@ class SeriesCharts(object):
         purchase_price = df.purchase_price.values[0]
         profits = [ self.decimal_to_percent((x-purchase_price)/purchase_price)
                 for x in price_list ]
+        
+        jk_index = shop_list.index('健客大药房旗舰店')
+        colors = ['rgba(50, 171, 96, 0.6)' for x in range(len(shop_list))]
+        colors[jk_index] = 'rgba(222,45,38,0.8)'
+
         trace1 = go.Bar(
                 x = shop_list,
                 y = price_list,
@@ -249,14 +254,9 @@ class SeriesCharts(object):
                     line=dict(
                         width=0.5, # 条形的边框粗细程度
                         ),
-                    color=[
-                         'rgba(50, 171, 96, 0.6)', 'rgba(50, 171, 96, 0.6)',
-                         'rgba(50, 171, 96, 0.6)', 'rgba(50, 171, 96, 0.6)',
-                         'rgba(222,45,38,0.8)', 'rgba(50, 171, 96, 0.6)', 
-                         'rgba(50, 171, 96, 0.6)','rgba(50, 171, 96, 0.6)', 
-                         'rgba(50, 171, 96, 0.6)', 'rgba(50, 171, 96, 0.6)',
-                         'rgba(50, 171, 96, 0.6)']),
+                    color=colors,
                      )
+                )
         trace2 = go.Scatter(
                 x = shop_list,
                 y = profits,
