@@ -11,7 +11,7 @@ urlpatterns = [
     url(r'logout/?$', views.logout, name='logout'),
     url(r'index/?$', login_required(views.IndexView.as_view(), login_url='/dashboard/login'), name='index'),
     url(r'test/?$', login_required(views.TestView.as_view(), login_url='/dashboard/login'), name='test'),
-    url(r'test2/?$', login_required(views.Test2View.as_view(), login_url='/dashboard/login'), name='test2'),
+    url(r'test/ajax/?$', login_required(views.TestView.use_ajax_send_product, login_url='/dashboard/login'), name='test_ajax'),
     url(r'tables/?$', login_required(views.TablesView.as_view(), login_url='/dashboard/login'), name='tables'),
     url(r'dynamic/?$', views.TablesDynamicView.as_view(), name='tables_dynamic'),
     #url(r'dashboard/temp/?$', TempPlotView.as_view(), name='temp'),

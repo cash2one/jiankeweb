@@ -79,22 +79,18 @@ class TestView(TemplateView):
     def get(self, request):
         if request.user.is_authenticated():
             pie_plot = SeriesCharts().test_bar_chart()
-            return render(request, self.template_name, locals())
+            return render(request, self.template_name, 
+                    {'pie_plot': pie_plot})
         else:
             logout(request)
             return HttpResponseRedirect(reverse('mydata:login'))
-
-
-class Test2View(TemplateView):
-    template_name = "mydata/00test2.html"
-
-    def get(self, request):
-        if request.user.is_authenticated():
-            pie_plot = SeriesCharts().test2_bar_chart()
-            return render(request, self.template_name, locals())
-        else:
-            logout(request)
-            return HttpResponseRedirect(reverse('mydata:login'))
+    
+    @classmethod
+    def use_ajax_send_product(cls, request):
+        product = request.GET.get('product')
+        logger.debug('\033[96m search product:{} \033[0m'.format(product))
+        pie_plot = SeriesCharts().test_bar_chart(product)
+        return HttpResponse(pie_plot)
 
 
 

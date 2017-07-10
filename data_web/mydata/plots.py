@@ -212,11 +212,22 @@ class SeriesCharts(object):
     def decimal_to_percent(self, decimal):
         return "%.2f%%" % (decimal*100)
     
-    def test_bar_chart(self):
-        sql = "select shop_name, price, purchase_price \
-                from  scrapy_taobao_cfy \
-                where prod_name='龙心 芪龙胶囊 0.2g*12粒/盒'\
-                and batch_id=2017070710  order by price desc ;"
+    def test_bar_chart(self, product=None):
+        newest_batch_sql = 'select batch_id from  scrapy_taobao_cfy order by id  DESC LIMIT 1;'
+        newest_batch_id = pd.read_sql(newest_batch_sql, CONN_6)['batch_id'].tolist()[0]
+        if not product:
+            product = '龙心 芪龙胶囊 0.2g*12粒/盒'
+            sql = "select shop_name, price, purchase_price \
+                    from  scrapy_taobao_cfy \
+                    where prod_name='{product}'\
+                    and batch_id={batch_id}  order by price desc ;"\
+                    .format(product=product, batch_id=newest_batch_id)                  
+        else:
+            sql = "select shop_name, price, purchase_price \
+                    from  scrapy_taobao_cfy \
+                    where prod_name='{product}'\
+                    and batch_id={batch_id}  order by price desc ;"\
+                    .format(product=product, batch_id=newest_batch_id)                  
 
         df = pd.read_sql(sql, CONN_6)
         #import pdb
@@ -258,7 +269,7 @@ class SeriesCharts(object):
         data = [trace1, trace2]
         #data = [trace0]
         layout = go.Layout(
-                title='龙心 芪龙胶囊 0.2g*12粒/盒',
+                title=product,
                 height = 480,
                 legend=dict(
                     orientation="h",
@@ -297,97 +308,6 @@ class SeriesCharts(object):
                     ),
                 )
         fig = go.Figure(data=data, layout=layout)
-
-        #py.iplot(fig, filename='style-bar')
-        plot_div = plot(fig, output_type='div', include_plotlyjs=False, show_link=False)
-        return plot_div
-
-    def test2_bar_chart(self):
-        sql = "select shop_name, price, purchase_price \
-                from  scrapy_taobao_cfy \
-                where prod_name='龙心 芪龙胶囊 0.2g*12粒/盒' and batch_id=2017070710;"
-
-        df = pd.read_sql(sql, CONN_6)
-        #import pdb
-        #pdb.set_trace()
-        shop_list = df.shop_name.values.tolist()
-        price_list = df.price.values.tolist()
-        purchase_price = df.purchase_price.values[0]
-        profits = [ self.decimal_to_percent((x-purchase_price)/purchase_price)
-                for x in price_list ]
-        trace0 = go.Bar(
-                x = shop_list,
-                y = price_list,
-                name='最新售价',
-                marker = dict(
-                    line=dict(
-                        width=0.5, # 条形的边粗程度
-                        ),
-                    color=[
-                         'rgba(50, 171, 96, 0.6)', 'rgba(50, 171, 96, 0.6)',
-                         'rgba(50, 171, 96, 0.6)', 'rgba(50, 171, 96, 0.6)',
-                         'rgba(50, 171, 96, 0.6)', 'rgba(50, 171, 96, 0.6)',
-                         'rgba(50, 171, 96, 0.6)', 'rgba(222,45,38,0.8)',
-                         'rgba(50, 171, 96, 0.6)', 'rgba(50, 171, 96, 0.6)',
-                         'rgba(50, 171, 96, 0.6)']),
-                     )
-        trace1 = go.Scatter(
-                x = shop_list,
-                y = profits,
-                yaxis='y2',
-                name='毛利率',
-                #marker=dict(color='rgb(148, 103, 189)'),
-                mode='lines+markers',
-                line=dict(
-                    color='rgb(128, 0, 128)'),
-                )
-
-        data = [trace0, trace1]
-        #data = [trace0]
-        layout = dict(
-                title='龙心 芪龙胶囊 0.2g*12粒/盒',
-                height = 480,
-                xaxis=dict(
-                    showgrid=False,
-                    showline=False,
-                    showticklabels=True,
-                    domain=[0, 0.85],
-                    ),
-                xaxis2=dict(
-                    showgrid=False,
-                    #showline=True,
-                    showticklabels=False,
-                    #linecolor='rgba(102, 102, 102, 0.8)',
-                    #linewidth=2,
-                    domain=[0, 0.85],
-                    ),
-                yaxis=dict(
-                    title='价格',
-                    tickvals = [5,10,15,20,25,30,35,40,45,50,55,60],
-                    tickwidth=2,
-                    ),
-                yaxis2=dict(
-                    title='毛利率',
-                    tickfont=dict(
-                        color='rgb(148, 103, 189)'
-                        ),
-                    titlefont=dict(
-                        color='rgb(148, 103, 189)'
-                        ),
-                    overlaying='y',
-                    side='right',
-                    range = ['-320', '100'],
-                    ),
-                paper_bgcolor='rgb(248, 248, 255)',
-                plot_bgcolor='rgb(248, 248, 255)',
-                )
-        fig = tools.make_subplots(rows=1, cols=2, specs=[[{}, {}]], shared_xaxes=True,
-                    shared_yaxes=False, vertical_spacing=0.001)
-        fig.append_trace(trace0, 1, 1)
-        fig.append_trace(trace1, 1, 2)
-        fig['layout'].update(layout)
-
-        #fig = go.Figure(data=data, layout=layout)
 
         #py.iplot(fig, filename='style-bar')
         plot_div = plot(fig, output_type='div', include_plotlyjs=False, show_link=False)
