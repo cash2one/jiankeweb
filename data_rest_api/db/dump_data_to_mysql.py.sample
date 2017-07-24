@@ -1,38 +1,30 @@
 # -*- coding:utf-8 -*-
 
-import threading
-
 import pymssql
 import MySQLdb
 from sqlalchemy import create_engine, exc
 import pandas as pd
 
 CONN_77 = pymssql.connect(
-        server='172.16.240',
+        server='172.16.240.77',
         user='Lily',
-        password='',
+        password='Lily123',
         database='BigData_CRM',
 )
 CONN_5 = MySQLdb.connect(
-              host = '172.17.240',
+              host = '172.17.240.5',
               user = 'root',
-              passwd = 'j',
+              passwd = 'jianke@123',
               db = 'data_play',
               port = 3306,
               charset="utf8"
           )
 
-class DataApi(threading.Thread):
-    def __init__(self, threadname):
-        threading.Thread.__init__(self)
+class DataApi():
+    def __init__(self, threadname=None):
         self.threadname = threadname
         self.connect = create_engine('mysql+mysqldb://root:jianke@123@172.17.240.5:3306/data_play?charset=utf8')
         self.shema = 'data_play'
-
-    def run(self):
-        print('\033 [95m 开始写入：{} \033[0m'.format(self.threadname))
-        self.dump_orders_log_by_day()
-        #self.dump_orders_log_by_hour()
 
     def dump_orders_log_by_day(self):
         '''
@@ -82,7 +74,7 @@ class DataApi(threading.Thread):
         print("\033 [95m {}, 日期共：{} \033[0m".format(self.threadname, len(df1)))
         count = 0
         for date in df1.values:
-            if date in mydf.data_date.values: return
+            if date in mydf.data_date.values: continue
             sql2 = "with max_t (name, m_time) as \
                     (select  OrdersCode, max(OperatorTime)  \
                     from OrdersLog \
@@ -102,10 +94,8 @@ class DataApi(threading.Thread):
 
 
 if __name__ == '__main__':
-    day_thread = DataApi('day-Thread')
-    #hour_thread = DataApi('Hour-Thread')
-    day_thread.start()
-    #hour_thread.start()
+    #hour_thread = DataApi('Hour-Thread').dump_orders_log_by_hour()
+    day_thread = DataApi('Day-Thread').dump_orders_log_by_day()
 
 
 
