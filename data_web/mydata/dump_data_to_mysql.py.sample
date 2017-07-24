@@ -3,6 +3,7 @@
 import threading
 
 import pymssql
+import MySQLdb
 from sqlalchemy import create_engine, exc
 import pandas as pd
 
@@ -12,7 +13,14 @@ CONN_77 = pymssql.connect(
         password='',
         database='BigData_CRM',
 )
-
+CONN_5 = MySQLdb.connect(
+              host = '172.17.240',
+              user = 'root',
+              passwd = 'j',
+              db = 'data_play',
+              port = 3306,
+              charset="utf8"
+          )
 
 class DataApi(threading.Thread):
     def __init__(self, threadname):
@@ -23,12 +31,16 @@ class DataApi(threading.Thread):
 
     def run(self):
         print('\033 [95m 开始写入：{} \033[0m'.format(self.threadname))
-        self.dump_orders_log_by_hour()
+        self.dump_orders_log_by_day()
+        #self.dump_orders_log_by_hour()
 
-    def dump_orders_log_by_date(self):
+    def dump_orders_log_by_day(self):
         '''
         172.16.240.77 -> BigData_CRM -> OrdersLog
         '''
+        my_sql = "select DATE_FORMAT(OperatorTime,'%Y/%m/%d') as data_date \
+                 from `shw_opr_sls_total_day` group by  DATE_FORMAT(OperatorTime ,'%Y/%m/%d');"
+        mydf = pd.read_sql(my_sql, CONN_5)
         #找出总共多少天数
         sql1 = 'select TOP 1000 CONVERT(varchar(12), OperatorTime, 111) dt \
                 from OrdersLog group by CONVERT(varchar(12), OperatorTime, 111);'
@@ -36,6 +48,7 @@ class DataApi(threading.Thread):
         print("\033 [95m {}, 日期共：{} \033[0m".format(self.threadname, len(df1)))
         count = 0
         for date in df1.values:
+            if date in mydf.data_date.values: continue
             sql3 = " WITH max_t (name, m_time) AS \
                     (SELECT  OrdersCode, MAX(OperatorTime) \
                     FROM  OrdersLog \
@@ -51,7 +64,7 @@ class DataApi(threading.Thread):
                 #import pdb
                 #pdb.set_trace()
                 pd.io.sql.to_sql(df3,'shw_opr_sls_total_day', self.connect, schema=self.shema, if_exists='append', index=False)
-                print("\033 [96m {}, 已保存{}个，保存日期：{} , 共 {} 条记录\033[0m".format(self.threadname, count, date, len(df2)))
+                print("\033 [96m {}, 已保存{}个，保存日期：{} , 共 {} 条记录\033[0m".format(self.threadname, count, date, len(df3)))
             except exc.IntegrityError as e:
                 #print('\033[96m error:{} \033[0m'.format(e))
                 continue
@@ -60,12 +73,16 @@ class DataApi(threading.Thread):
         '''
         先取 2017年
         '''
+        my_sql = "select DATE_FORMAT(OperatorTime,'%Y/%m/%d') as data_date \
+                 from `shw_opr_sls_total_hour` group by  DATE_FORMAT(OperatorTime ,'%Y/%m/%d');"
+        mydf = pd.read_sql(my_sql, CONN_5)
         sql1 = "SELECT DISTINCT CONVERT(varchar(12), OperatorTime, 111 ) \
                 FROM OrdersLog WHERE DATEPART(yy, OperatorTime) = '2017';"
         df1 = pd.read_sql(sql1, CONN_77)
         print("\033 [95m {}, 日期共：{} \033[0m".format(self.threadname, len(df1)))
         count = 0
         for date in df1.values:
+            if date in mydf.data_date.values: return
             sql2 = "with max_t (name, m_time) as \
                     (select  OrdersCode, max(OperatorTime)  \
                     from OrdersLog \
@@ -85,10 +102,10 @@ class DataApi(threading.Thread):
 
 
 if __name__ == '__main__':
-    hour_thread = DataApi('Hour-Thread')
-    day_thread = DataApi('Hour-Thread')
-    hour_thread.start()
+    day_thread = DataApi('day-Thread')
+    #hour_thread = DataApi('Hour-Thread')
     day_thread.start()
+    #hour_thread.start()
 
 
 
