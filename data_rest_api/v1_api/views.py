@@ -18,27 +18,29 @@ class OrdersLogViewSet(viewsets.ModelViewSet):
     queryset = OrdersLog.objects.all()
     serializer_class = OrdersLogSerializer
 
+    def _filter_log_date(self, items, since, util):
+        date_list = items.extra({'operate_time':"date(OperatorTime)"}) \
+            .values('operate_time').distinct()
+        if any([since, util]):
+            #import pdb
+            #pdb.set_trace()
+            date_list = date_list.filter(OperatorTime__gte=since, OperatorTime__lt=util)
+        return date_list
+
     @list_route(methods=['get'], url_path='orders/day')
     def get_orders_log_per_day(self, request):
         '''
-        data = [
-            {
-            'date': 'xx',
-            'GMV': 'xxx',
-            'sls': 'xx',
-            'returned': 'xxx',
-            'rejected': 'xxx',
-            'unconfirmed':'xxx',
-            },
-            ...
-        ]
+        订单日志接口
         '''
-        #items = OrdersLog.objects.all()
-        items = OrdersLog.objects.filter(id__lt=33392351)
+        items = OrdersLog.objects.all()
         #import pdb
         #pdb.set_trace()
-        date_list = items.extra({'operate_time':"date(OperatorTime)"}) \
-            .values('operate_time').distinct()
+        #items = OrdersLog.objects.filter(id__lt=3592351)
+        since = request.query_params.get('since')
+        util = request.query_params.get('util')
+        logger.debug('\033[96m query params:since:{}, util:{} \033[0m'\
+                     .format(since, util))
+        date_list = self._filter_log_date(items, since, util)
         data = []
         for date in date_list:
             date = date['operate_time']
