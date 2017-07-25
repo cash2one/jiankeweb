@@ -12,8 +12,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'apitest')
 
+
 class ApiTestSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
+
     class Meta:
         model = ApiTest
         fields =('id', 'jk_id', 'taobao_id', 'prod_name',

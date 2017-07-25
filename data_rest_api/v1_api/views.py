@@ -14,6 +14,7 @@ from v1_api.serializers import OrdersLogSerializer,\
 
 logger = logging.getLogger('data_request')
 
+
 class OrdersLogViewSet(viewsets.ModelViewSet):
     queryset = OrdersLog.objects.all()
     serializer_class = OrdersLogSerializer
@@ -28,14 +29,21 @@ class OrdersLogViewSet(viewsets.ModelViewSet):
         return date_list
 
     @list_route(methods=['get'], url_path='orders/day')
-    def get_orders_log_per_day(self, request):
+    def get_orders_log_per_day(self, request, format=None):
         '''
         订单日志接口
         '''
-        items = OrdersLog.objects.all()
+        #items = OrdersLog.objects.all()
         #import pdb
         #pdb.set_trace()
-        #items = OrdersLog.objects.filter(id__lt=3592351)
+        #if not "application/json" in request.META['HTTP_ACCEPT']:
+        #    context = {
+        #        'status': status.HTTP_406_NOT_ACCEPTABLE,
+        #        'msg': 'NOT ACCEPTABLE',
+        #    }
+        #    return Response(context, status=context.get('status'))
+
+        items = OrdersLog.objects.filter(id__lt=592351)
         since = request.query_params.get('since')
         util = request.query_params.get('util')
         logger.debug('\033[96m query params:since:{}, util:{} \033[0m'\
