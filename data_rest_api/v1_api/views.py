@@ -14,7 +14,6 @@ from v1_api.serializers import OrdersLogSerializer,\
 
 logger = logging.getLogger('data_request')
 
-
 class OrdersLogViewSet(viewsets.ModelViewSet):
     queryset = OrdersLog.objects.all()
     serializer_class = OrdersLogSerializer
