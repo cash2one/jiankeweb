@@ -11,12 +11,10 @@ router.register(r'v1', v1_api.views.OrdersLogViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^api-auth/', include('rest_framework.urls',
+                               namespace='rest_framework')),
     url(r'^', include(router.urls)),
 #    url(r'^', include('myapi.urls', namespace='myapi')),
 ]
 
 
-urlpatterns += [
-    url(r'^api-auth/', include('rest_framework.urls',
-                               namespace='rest_framework')),
-]

@@ -18,13 +18,13 @@ class OrdersLogViewSet(viewsets.ModelViewSet):
     queryset = OrdersLog.objects.all()
     serializer_class = OrdersLogSerializer
 
-    def _filter_log_date(self, items, since, util):
+    def _filter_log_date(self, items, since, until):
         date_list = items.extra({'operate_time':"date(OperatorTime)"}) \
             .values('operate_time').distinct()
-        if any([since, util]):
+        if any([since, until]):
             #import pdb
             #pdb.set_trace()
-            date_list = date_list.filter(OperatorTime__gte=since, OperatorTime__lt=util)
+            date_list = date_list.filter(OperatorTime__gte=since, OperatorTime__lt=until)
         return date_list
 
     @list_route(methods=['get'], url_path='orders/day')
@@ -44,10 +44,10 @@ class OrdersLogViewSet(viewsets.ModelViewSet):
 
         items = OrdersLog.objects.filter(id__lt=592351)
         since = request.query_params.get('since')
-        util = request.query_params.get('util')
-        logger.debug('\033[96m query params:since:{}, util:{} \033[0m'\
-                     .format(since, util))
-        date_list = self._filter_log_date(items, since, util)
+        until = request.query_params.get('until')
+        logger.debug('\033[96m query params:since:{}, until:{} \033[0m'\
+                     .format(since, until))
+        date_list = self._filter_log_date(items, since, until)
         data = []
         for date in date_list:
             date = date['operate_time']
