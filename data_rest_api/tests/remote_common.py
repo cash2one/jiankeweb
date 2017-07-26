@@ -24,8 +24,8 @@ def sig(method, url, access_key, secret_key,
     if sig_method == 'HMAC-SHA1':
         return timestamp, nonce, hmac.new(\
                 bytearray(secret_key, 'ASCII'), bytearray(quoted_url, 'ASCII'),
-                hashlib.sha1)\
-                        .digest().strip()
+                hashlib.sha256)\
+                        .hexdigest().strip()
 
 def api_request(path,
         data=None,
