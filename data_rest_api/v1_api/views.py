@@ -27,6 +27,8 @@ class OrdersLogViewSet(viewsets.ModelViewSet):
         date_list = items.extra({'operate_time':"date(OperatorTime)"}) \
             .values('operate_time').distinct()
         if all([since, until]):
+            if since > until:
+                return 'error'
             #import pdb
             #pdb.set_trace()
             date_list = date_list.filter(OperatorTime__gte=since, OperatorTime__lt=until)
@@ -40,19 +42,19 @@ class OrdersLogViewSet(viewsets.ModelViewSet):
         #items = OrdersLog.objects.all()
         #import pdb
         #pdb.set_trace()
-        #if not "application/json" in request.META['HTTP_ACCEPT']:
-        #    context = {
-        #        'status': status.HTTP_406_NOT_ACCEPTABLE,
-        #        'msg': 'NOT ACCEPTABLE',
-        #    }
-        #    return Response(context, status=context.get('status'))
-
         items = self.queryset.filter(id__lt=592351)
         since = request.query_params.get('since')
         until = request.query_params.get('until')
         logger.debug('\033[96m query params:since:{}, until:{} \033[0m'\
                      .format(since, until))
         date_list = self._filter_log_date(items, since, until)
+        if date_list == 'error':
+            context = {
+                'status': status.HTTP_406_NOT_ACCEPTABLE,
+                'msg': 'NOT ACCEPTABLE',
+                'data': '参数错误',
+            }
+            return Response(context, status=context.get('status'))
         data = []
         for date in date_list:
             date = date['operate_time']
@@ -87,8 +89,10 @@ class HourGMVViewSet(viewsets.ModelViewSet):
                                         since=None, until=None,
                                         last_date=None, next_date=None):
         if all([since, until]):
+            if since > until:
+                return
             data = queryset \
-                .filter(day__lte="2017-07-27", day__gte="2017-6-16")\
+                .filter(day__lte=until, day__gte=since)\
                 .values('hour')\
                 .annotate(gmv=Sum('gmv'),
                           user_cnt=Sum('user_cnt'),
@@ -108,7 +112,7 @@ class HourGMVViewSet(viewsets.ModelViewSet):
         目前接口对接三种情况：
         1 不传参时，显示 今天 的数据；
         2 传参:last_date, next_date ，显示 特定某两天的数据;
-        3 传参: since, until, 显示 某一段时间内的数据
+        3 传参: since, until, 显示 某一段时间内加总的数据
         '''
         query_params = { key: request.query_params.get(key)
                         for key in ['since', 'until', 'last_date', 'next_date'] }
@@ -117,6 +121,13 @@ class HourGMVViewSet(viewsets.ModelViewSet):
             self.queryset, since=query_params['since'], until=query_params['until'],
             last_date=query_params['last_date'], next_date=query_params['next_date']
         )
+        if not data:
+            context = {
+                'status': status.HTTP_406_NOT_ACCEPTABLE,
+                'msg': 'NOT ACCEPTABLE',
+                'data': '参数错误',
+            }
+            return Response(context, status=context.get('status'))
         logger.debug('\033[96m gmv hourly counts:{} \033[0m'.format(len(data)))
         context = {
             'status': status.HTTP_200_OK,
