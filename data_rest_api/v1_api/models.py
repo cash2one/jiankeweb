@@ -29,3 +29,20 @@ class HourGMV(models.Model):
         db_table = 'shw_opr_ords_gmv_hour'
 
 
+class NewestTmall(models.Model):
+    '''
+    天猫最新价格
+    '''
+    taobao_id = models.IntegerField(verbose_name='淘宝ID', null=True)
+    jk_id = models.IntegerField(verbose_name='健客ID', null=True)
+    prod_name = models.CharField(verbose_name='搜索关键词', max_length=100, null=True)
+    shop_name = models.CharField(verbose_name='天猫商铺名', max_length=100, null=True)
+    price = models.DecimalField(verbose_name='天猫售价', max_digits=10, decimal_places=2, null=True)
+    purchase_price = models.DecimalField(verbose_name='成本价', max_digits=10, decimal_places=2, null=True)
+    margin = models.DecimalField(verbose_name='毛利率', max_digits=10, decimal_places=2, null=True)
+    insert_time = models.DateTimeField(verbose_name='更新时间', null=True)
+
+    class Meta:
+        db_table = 'shw_prc_tmall_last'
+
+

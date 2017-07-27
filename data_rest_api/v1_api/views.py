@@ -11,9 +11,10 @@ from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
 
-from v1_api.models import OrdersLog, HourGMV
+from v1_api.models import OrdersLog, HourGMV, NewestTmall
 from v1_api.serializers import OrdersLogSerializer,\
-			OrdersLogRetrieveSerializer, HourGMVSerializer
+			OrdersLogRetrieveSerializer, HourGMVSerializer,\
+            NewestTmallSerializer
 
 logger = logging.getLogger('data_request')
 
@@ -116,10 +117,41 @@ class HourGMVViewSet(viewsets.ModelViewSet):
             self.queryset, since=query_params['since'], until=query_params['until'],
             last_date=query_params['last_date'], next_date=query_params['next_date']
         )
-        logger.debug('\033[96m orders log counts:{} \033[0m'.format(len(data)))
+        logger.debug('\033[96m gmv hourly counts:{} \033[0m'.format(len(data)))
         context = {
             'status': status.HTTP_200_OK,
             'msg': 'OK',
             'data': data,
         }
         return Response(context, status=context.get('status'))
+
+
+class NewestTmallViewSet(viewsets.ModelViewSet):
+    queryset = NewestTmall.objects.all()
+    serializer_class = NewestTmallSerializer
+
+    @list_route(methods=['get'], url_path='newest/tmall/price')
+    def get_newest_tmall_price(self, request, format=None):
+        '''
+        天猫最新价格:
+        要求必须带参数 product 查询
+        '''
+        product = request.query_params.get('product')
+        if not product:
+            context = {
+                'status': status.HTTP_406_NOT_ACCEPTABLE,
+                'msg': 'NOT ACCEPTABLE',
+            }
+            return Response(context, status=context.get('status'))
+        items = self.queryset.filter(prod_name__icontains=product)
+        data = self.serializer_class(items, many=True).data
+        logger.debug('\033[96m newest tmall counts:{} \033[0m'.format(len(data)))
+        context = {
+            'status': status.HTTP_200_OK,
+            'msg': 'OK',
+            'data': data,
+        }
+        return Response(context, status=context.get('status'))
+
+
+

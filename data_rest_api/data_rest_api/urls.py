@@ -9,6 +9,7 @@ import v1_api.views
 router = DefaultRouter()
 router.register(r'v1', v1_api.views.OrdersLogViewSet)
 router.register(r'v1', v1_api.views.HourGMVViewSet)
+router.register(r'v1', v1_api.views.NewestTmallViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
