@@ -2,7 +2,7 @@
 
 import requests
 import urllib
-import json
+import base64
 import time
 import random
 import hmac
@@ -12,7 +12,7 @@ DEBUG = False
 
 
 def sig(method, url, access_key, secret_key,
-        timestamp=None, nonce=None, sig_method='HMAC-SHA1'):
+        timestamp=None, nonce=None, sig_method='HMAC-SHA256'):
     if timestamp is None:
         timestamp = int(time.time() * 1000)
     if nonce is None:
@@ -21,11 +21,11 @@ def sig(method, url, access_key, secret_key,
     url = '%s%saccess_key=%s&timestamp=%s&nonce=%s' \
             % (url, seperator, access_key, timestamp, nonce)
     quoted_url = urllib.parse.quote('%s %s' % (method, url), safe='')
-    if sig_method == 'HMAC-SHA1':
-        return timestamp, nonce, hmac.new(\
+    if sig_method == 'HMAC-SHA256':
+        return timestamp, nonce, base64.b64encode(hmac.new(\
                 bytearray(secret_key, 'ASCII'), bytearray(quoted_url, 'ASCII'),
                 hashlib.sha256)\
-                        .hexdigest().strip()
+                        .digest().strip())
 
 def api_request(path,
         data=None,

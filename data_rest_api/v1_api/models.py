@@ -15,3 +15,17 @@ class OrdersLog(models.Model):
         db_table = 'shw_opr_sls_total_day'
 
 
+class HourGMV(models.Model):
+    '''
+    GMV流水(每分钟更新)
+    '''
+    day = models.DateField(verbose_name='日期')
+    hour = models.IntegerField(verbose_name='小时')
+    gmv = models.DecimalField(verbose_name='订单流水', max_digits=50, decimal_places=5)
+    ords_cnt = models.BigIntegerField(verbose_name='订单数')
+    user_cnt = models.BigIntegerField(verbose_name='客户数')
+
+    class Meta:
+        db_table = 'shw_opr_ords_gmv_hour'
+
+

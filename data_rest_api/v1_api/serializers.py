@@ -2,12 +2,14 @@ from django.shortcuts import render
 
 from rest_framework import serializers
 
-from v1_api.models import OrdersLog
+from v1_api.models import OrdersLog, HourGMV
 
 class OrdersLogSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = OrdersLog
         fields = ('id', 'OrdersCode', 'OrderStatus', 'OperatorTime')
+
 
 class OrdersLogRetrieveSerializer(serializers.Serializer):
     date = serializers.DateTimeField(read_only=True)
@@ -16,3 +18,12 @@ class OrdersLogRetrieveSerializer(serializers.Serializer):
     returned = serializers.IntegerField()
     rejected = serializers.IntegerField()
     unconfirmed = serializers.IntegerField()
+
+
+class HourGMVSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = HourGMV
+        fields = ('id', 'day', 'hour', 'gmv', 'ords_cnt', 'user_cnt')
+
+
