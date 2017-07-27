@@ -152,6 +152,7 @@ class NewestTmallViewSet(viewsets.ModelViewSet):
             context = {
                 'status': status.HTTP_406_NOT_ACCEPTABLE,
                 'msg': 'NOT ACCEPTABLE',
+                'data': '参数错误',
             }
             return Response(context, status=context.get('status'))
         items = self.queryset.filter(prod_name__icontains=product)
