@@ -18,6 +18,16 @@ from v1_api.serializers import OrdersLogSerializer,\
 
 logger = logging.getLogger('data_request')
 
+def _show_client_info(request):
+    client_info = { key.lower():request.META.get(key)
+        for key in ['REMOTE_ADDR', 'REMOTE_HOST', 'REMOTE_USER', 'REQUEST_METHOD']}
+    client_info['is_ajax'] = request.is_ajax()
+    return client_info
+
+def _show_response_headers(response):
+    response_headers = response.items()
+    return response_headers
+
 
 class OrdersLogViewSet(viewsets.ModelViewSet):
     queryset = OrdersLog.objects.all()
@@ -31,7 +41,7 @@ class OrdersLogViewSet(viewsets.ModelViewSet):
                 return 'error'
             #import pdb
             #pdb.set_trace()
-            date_list = date_list.filter(OperatorTime__gte=since, OperatorTime__lt=until)
+            date_list = date_list.filter(OperatorTime__gte=since, OperatorTime__lte=until)
         return date_list
 
     @list_route(methods=['get'], url_path='orders/day')
@@ -42,6 +52,7 @@ class OrdersLogViewSet(viewsets.ModelViewSet):
         #items = OrdersLog.objects.all()
         #import pdb
         #pdb.set_trace()
+        logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
         items = self.queryset.filter(id__lt=592351)
         since = request.query_params.get('since')
         until = request.query_params.get('until')
@@ -78,7 +89,9 @@ class OrdersLogViewSet(viewsets.ModelViewSet):
             'msg': 'OK',
             'data': data,
         }
-        return Response(context, status=context.get('status'))
+        response = Response(context, status=context.get('status'))
+        logger.debug('\033[95m response headers : {} \033[0m'.format(_show_response_headers(response)))
+        return response
 
 
 class HourGMVViewSet(viewsets.ModelViewSet):
@@ -114,6 +127,7 @@ class HourGMVViewSet(viewsets.ModelViewSet):
         2 传参:last_date, next_date ，显示 特定某两天的数据;
         3 传参: since, until, 显示 某一段时间内加总的数据
         '''
+        logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
         query_params = { key: request.query_params.get(key)
                         for key in ['since', 'until', 'last_date', 'next_date'] }
         logger.debug(pprint.pformat(query_params))
@@ -134,7 +148,9 @@ class HourGMVViewSet(viewsets.ModelViewSet):
             'msg': 'OK',
             'data': data,
         }
-        return Response(context, status=context.get('status'))
+        response = Response(context, status=context.get('status'))
+        logger.debug('\033[95m response headers : {} \033[0m'.format(_show_response_headers(response)))
+        return response
 
 
 class NewestTmallViewSet(viewsets.ModelViewSet):
@@ -147,6 +163,7 @@ class NewestTmallViewSet(viewsets.ModelViewSet):
         天猫最新价格:
         要求必须带参数 product 查询
         '''
+        logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
         product = request.query_params.get('product')
         if not product:
             context = {
@@ -163,7 +180,9 @@ class NewestTmallViewSet(viewsets.ModelViewSet):
             'msg': 'OK',
             'data': data,
         }
-        return Response(context, status=context.get('status'))
+        response = Response(context, status=context.get('status'))
+        logger.debug('\033[95m response headers : {} \033[0m'.format(_show_response_headers(response)))
+        return response
 
 
 
