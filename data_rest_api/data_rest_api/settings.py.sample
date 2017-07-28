@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'rest_framework',
-    'rest_framework_swagger',
     'corsheaders',
     'v1_api',
 ]
@@ -81,13 +80,17 @@ WSGI_APPLICATION = 'data_rest_api.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
+DB6_HOST = '172.17.240.6'
+DB6_USER = 'ot'
+DB6_PASSWD = '6abc'
+DB6 = 'shengyi'
+DB6_PORT = 3306
+DB6_CHARSET = 'utf8'
 
-DB_HOST = '172.17.240.'
-#DB_HOST = '172.17.240.'
-DB_USER = 'root'
-DB_PASSWD = 'jian'
-#DB_PASSWD = '201'
-DB = 'data_pl'
+DB_HOST = '172.17.240'
+DB_USER = 'roo'
+DB_PASSWD = 'jianke'
+DB = 'data_play'
 DB_PORT = 3306
 
 DATABASES = {
