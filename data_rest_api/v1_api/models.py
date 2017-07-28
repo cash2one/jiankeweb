@@ -77,10 +77,10 @@ class TmallIndustryTrend(models.Model):
     trade_index = models.DecimalField(verbose_name='交易指数合计',
                                       max_digits=20, decimal_places=2, null=True)
     pay_item_qty = models.BigIntegerField(verbose_name='付款数量合计')
-    item_cnt = models.BigIntegerField(verbose_name='类下获取到的商品数量')
-    avg_trd_idx = models.DecimalField(verbose_name='（品类下）商品的平均交易指数',
+    item_cnt = models.BigIntegerField(verbose_name='(品类下)获取到的商品数量')
+    avg_trd_idx = models.DecimalField(verbose_name='(品类下)商品的平均交易指数',
                                       max_digits=20, decimal_places=2, null=True)
-    avg_pay_qty = models.DecimalField(verbose_name='（品类下）商品的平均付款数量',
+    avg_pay_qty = models.DecimalField(verbose_name='(品类下)商品的平均付款数量',
                                       max_digits=20, decimal_places=2, null=True)
 
     class Meta:

@@ -56,6 +56,7 @@ class DailyOrdersViewSet(viewsets.ModelViewSet):
     def get_daily_orders(self, request, format=None):
         '''
         订单日志接口
+        可提供参数: since, until
         '''
         logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
         since = request.query_params.get('since')
@@ -183,6 +184,8 @@ class MonthlyRegionUserViewSet(viewsets.ModelViewSet):
         year_month = lambda x:(int(x[0]), int(x[1]))
         since_year, since_month = year_month(since.split('-'))
         until_year, until_month = year_month(until.split('-'))
+        logger.debug('\033[96m since:year:{}, month:{}; until: year:{}, month:{} \033[0m'\
+                     .format(since_year, since_month, until_year, until_month))
         if since_year == until_year:
             queryset = queryset.filter(year=until_year,
                                        month__gte=min(since_month, until_month),
@@ -198,7 +201,7 @@ class MonthlyRegionUserViewSet(viewsets.ModelViewSet):
     def get_monthly_region_user(self, request, format=None):
         '''
         每月的地域新老用户比例
-        按 时间段 查询
+        必须提供查询参数: since, until
         '''
         logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
         since = request.query_params.get('since')
@@ -258,6 +261,7 @@ class TmallIndustryTrendViewSet(viewsets.ModelViewSet):
     def get_tmall_industry_trend(self, request, format=None):
         '''
         天猫品类（三级）交易情况，趋势
+        可选参数: third_category
         '''
         logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
         third_category= request.query_params.get('third_category')
