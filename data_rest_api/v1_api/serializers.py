@@ -2,28 +2,20 @@ from django.shortcuts import render
 
 from rest_framework import serializers
 
-from v1_api.models import OrdersLog, HourGMV, NewestTmall
+from v1_api.models import DailyOrders, HourlyGMV, NewestTmall
 
-class OrdersLogSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = OrdersLog
-        fields = ('id', 'OrdersCode', 'OrderStatus', 'OperatorTime')
-
-
-class OrdersLogRetrieveSerializer(serializers.Serializer):
-    date = serializers.DateTimeField(read_only=True)
-    GMV = serializers.CharField(required=False)
-    sls = serializers.IntegerField()
-    returned = serializers.IntegerField()
-    rejected = serializers.IntegerField()
-    unconfirmed = serializers.IntegerField()
-
-
-class HourGMVSerializer(serializers.ModelSerializer):
+class DailyOrdersSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = HourGMV
+        model = DailyOrders
+        fields = ('id', 'day', 'sls', 'returned',
+                  'rejected', 'canceled')
+
+
+class HourlyGMVSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = HourlyGMV
         fields = ('id', 'day', 'hour', 'gmv', 'ords_cnt', 'user_cnt')
 
 

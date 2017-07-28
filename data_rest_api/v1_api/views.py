@@ -11,10 +11,9 @@ from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
 
-from v1_api.models import OrdersLog, HourGMV, NewestTmall
-from v1_api.serializers import OrdersLogSerializer,\
-			OrdersLogRetrieveSerializer, HourGMVSerializer,\
-            NewestTmallSerializer
+from v1_api.models import DailyOrders, HourlyGMV, NewestTmall
+from v1_api.serializers import DailyOrdersSerializer,\
+			HourlyGMVSerializer, NewestTmallSerializer
 
 logger = logging.getLogger('data_request')
 
@@ -29,60 +28,40 @@ def _show_response_headers(response):
     return response_headers
 
 
-class OrdersLogViewSet(viewsets.ModelViewSet):
-    queryset = OrdersLog.objects.all()
-    serializer_class = OrdersLogSerializer
+class DailyOrdersViewSet(viewsets.ModelViewSet):
+    queryset = DailyOrders.objects.all()
+    serializer_class = DailyOrdersSerializer
 
-    def _filter_log_date(self, items, since, until):
-        date_list = items.extra({'operate_time':"date(OperatorTime)"}) \
-            .values('operate_time').distinct()
+    def _filter_log_date(self, queryset, since, until):
+        #date_list = queryset.extra({'operate_time':"date(OperatorTime)"}) \
+        #    .values('operate_time').distinct()
         if all([since, until]):
             if since > until:
                 return 'error'
             #import pdb
             #pdb.set_trace()
-            date_list = date_list.filter(OperatorTime__gte=since, OperatorTime__lte=until)
+            date_list = queryset.filter(day__gte=since, day__lte=until)
         return date_list
 
-    @list_route(methods=['get'], url_path='orders/day')
-    def get_orders_log_per_day(self, request, format=None):
+    @list_route(methods=['get'], url_path='daily/orders/?')
+    def get_daily_orders(self, request, format=None):
         '''
         订单日志接口
         '''
-        #items = OrdersLog.objects.all()
-        #import pdb
-        #pdb.set_trace()
         logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
-        items = self.queryset.filter(id__lt=592351)
         since = request.query_params.get('since')
         until = request.query_params.get('until')
         logger.debug('\033[96m query params:since:{}, until:{} \033[0m'\
                      .format(since, until))
-        date_list = self._filter_log_date(items, since, until)
-        if date_list == 'error':
+        data = self._filter_log_date(self.queryset, since, until)
+        data = self.serializer_class(data, many=True).data
+        if data == 'error':
             context = {
                 'status': status.HTTP_406_NOT_ACCEPTABLE,
                 'msg': 'NOT ACCEPTABLE',
                 'data': '参数错误',
             }
             return Response(context, status=context.get('status'))
-        data = []
-        for date in date_list:
-            date = date['operate_time']
-            date_items = items \
-                .filter(OperatorTime__startswith=date)
-            sls_items = date_items.exclude(OrderStatus__in=[0, 100, 60, 80, 160, 170, 180, 200, 303])
-            rejected_items = date_items.filter(OrderStatus__in=[60, 160])
-            returned_items = date_items.filter(OrderStatus__in=[80, 180])
-            unconfirmed_items = date_items.filter(OrderStatus__in=[0, 100])
-            data.append({
-                'date': date,
-                'GMV': '',
-                'sls': len(sls_items),
-                'returned': len(returned_items),
-                'rejected': len(rejected_items),
-                'unconfirmed': len(unconfirmed_items),
-            })
         logger.debug('\033[96m orders log counts:{} \033[0m'.format(len(data)))
         context = {
             'status': status.HTTP_200_OK,
@@ -94,9 +73,9 @@ class OrdersLogViewSet(viewsets.ModelViewSet):
         return response
 
 
-class HourGMVViewSet(viewsets.ModelViewSet):
-    queryset = HourGMV.objects.all()
-    serializer_class = HourGMVSerializer
+class HourlyGMVViewSet(viewsets.ModelViewSet):
+    queryset = HourlyGMV.objects.all()
+    serializer_class = HourlyGMVSerializer
 
     def _filter_gmv_hourly_query_params(self, queryset,
                                         since=None, until=None,
@@ -112,10 +91,10 @@ class HourGMVViewSet(viewsets.ModelViewSet):
                           ords_cnt=Sum('ords_cnt'))
         elif all([last_date, next_date]):
             data = queryset.filter(day__in=[last_date, next_date])
-            data = HourGMVSerializer(data, many=True).data
+            data = HourlyGMVSerializer(data, many=True).data
         else:
             data = queryset.filter(day=datetime.date.today())
-            data = HourGMVSerializer(data, many=True).data
+            data = HourlyGMVSerializer(data, many=True).data
         return data
 
     @list_route(methods=['get'], url_path='gmv/hourly')

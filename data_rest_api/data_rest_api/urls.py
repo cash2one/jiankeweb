@@ -7,8 +7,8 @@ from rest_framework.routers import DefaultRouter
 import v1_api.views
 
 router = DefaultRouter()
-router.register(r'v1', v1_api.views.OrdersLogViewSet)
-router.register(r'v1', v1_api.views.HourGMVViewSet)
+router.register(r'v1', v1_api.views.DailyOrdersViewSet)
+router.register(r'v1', v1_api.views.HourlyGMVViewSet)
 router.register(r'v1', v1_api.views.NewestTmallViewSet)
 
 urlpatterns = [
