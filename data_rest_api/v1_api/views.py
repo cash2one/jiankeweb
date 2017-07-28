@@ -1,8 +1,10 @@
 #coding:utf-8
 
 import logging
+import time
 import datetime
 from collections import OrderedDict
+import MySQLdb
 
 from django.db.models import Sum
 from django.core.exceptions import ValidationError
@@ -17,6 +19,9 @@ from v1_api.models import DailyOrders, HourlyGMV, NewestTmall, \
 from v1_api.serializers import DailyOrdersSerializer,\
 	HourlyGMVSerializer, NewestTmallSerializer, \
     MonthlyRegionUserSerializer, TmallIndustryTrendSerializer
+
+from data_rest_api.settings import DB6_HOST, DB6_USER, DB6_PASSWD,\
+    DB6, DB6_CHARSET
 
 logger = logging.getLogger('data_request')
 
@@ -221,26 +226,44 @@ class MonthlyRegionUserViewSet(viewsets.ModelViewSet):
 
 
 class TmallIndustryTrendViewSet(viewsets.ModelViewSet):
-    queryset = NewestTmall.objects.all()
-    serializer_class = NewestTmallSerializer
+    queryset = TmallIndustryTrend.objects.all()
+    serializer_class = TmallIndustryTrendSerializer
 
-    @list_route(methods=['get'], url_path='newest/tmall/price')
-    def get_newest_tmall_price(self, request, format=None):
+    def _filter_tmall_industry_trend(self, third_category):
+        year = int(time.strftime("%Y"))
+        week = int(time.strftime("%W"))
+        if third_category:
+            db = MySQLdb.connect(host=DB6_HOST, user=DB6_USER,
+                               passwd=DB6_PASSWD, db=DB6, charset=DB6_CHARSET)
+            cursor = db.cursor()
+            cursor.execute("select model_name, trade_index, pay_item_qty  \
+                           from industrys where third_category_id=\
+                           (select second_category_id from industry_third_category \
+                           where third_cate_name='{third_category}')"
+                           .format(third_category=third_category))
+            items = cursor.fetchall()
+            data = []
+            for item in items:
+                data.append({
+                    'model_name': item[0],
+                    'trade_index': item[1],
+                    'pay_item_qty': item[2],
+                })
+        else:
+            queryset = self.queryset.filter(year=year, week=week)
+            data = self.serializer_class(queryset, many=True).data
+        return data
+
+    @list_route(methods=['get'], url_path='tmall/industry/trend/?')
+    def get_tmall_industry_trend(self, request, format=None):
         '''
-        天猫最新价格:
-        要求必须带参数 product 查询
+        天猫品类（三级）交易情况，趋势
         '''
         logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
-        product = request.query_params.get('product')
-        if not product:
-            context = {
-                'status': status.HTTP_406_NOT_ACCEPTABLE,
-                'msg': 'NOT ACCEPTABLE',
-                'data': '参数错误',
-            }
-            return Response(context, status=context.get('status'))
-        items = self.queryset.filter(prod_name__icontains=product)
-        data = self.serializer_class(items, many=True).data
+        third_category= request.query_params.get('third_category')
+        logger.debug('\033[96m query params: third_category:{} \033[0m'\
+                     .format(third_category))
+        data = self._filter_tmall_industry_trend(third_category)
         logger.debug('\033[96m newest tmall counts:{} \033[0m'.format(len(data)))
         context = {
             'status': status.HTTP_200_OK,
