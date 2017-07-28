@@ -2,18 +2,21 @@
 
 import logging
 import datetime
-import pprint
+from collections import OrderedDict
 
 from django.db.models import Sum
+from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
 
-from v1_api.models import DailyOrders, HourlyGMV, NewestTmall
+from v1_api.models import DailyOrders, HourlyGMV, NewestTmall, \
+    MonthlyRegionUser, TmallIndustryTrend
 from v1_api.serializers import DailyOrdersSerializer,\
-			HourlyGMVSerializer, NewestTmallSerializer
+	HourlyGMVSerializer, NewestTmallSerializer, \
+    MonthlyRegionUserSerializer, TmallIndustryTrendSerializer
 
 logger = logging.getLogger('data_request')
 
@@ -35,13 +38,14 @@ class DailyOrdersViewSet(viewsets.ModelViewSet):
     def _filter_log_date(self, queryset, since, until):
         #date_list = queryset.extra({'operate_time':"date(OperatorTime)"}) \
         #    .values('operate_time').distinct()
-        if all([since, until]):
-            if since > until:
-                return 'error'
-            #import pdb
-            #pdb.set_trace()
-            date_list = queryset.filter(day__gte=since, day__lte=until)
-        return date_list
+        try:
+            if all([since, until]):
+                if since > until: return 'error'
+                queryset = queryset.filter(day__gte=since, day__lte=until)
+        except ValidationError as e:
+            logger.error('\033[92m {} \033[0m'.format(e))
+            return 'error'
+        return queryset
 
     @list_route(methods=['get'], url_path='daily/orders/?')
     def get_daily_orders(self, request, format=None):
@@ -54,7 +58,6 @@ class DailyOrdersViewSet(viewsets.ModelViewSet):
         logger.debug('\033[96m query params:since:{}, until:{} \033[0m'\
                      .format(since, until))
         data = self._filter_log_date(self.queryset, since, until)
-        data = self.serializer_class(data, many=True).data
         if data == 'error':
             context = {
                 'status': status.HTTP_406_NOT_ACCEPTABLE,
@@ -62,6 +65,7 @@ class DailyOrdersViewSet(viewsets.ModelViewSet):
                 'data': '参数错误',
             }
             return Response(context, status=context.get('status'))
+        data = self.serializer_class(data, many=True).data
         logger.debug('\033[96m orders log counts:{} \033[0m'.format(len(data)))
         context = {
             'status': status.HTTP_200_OK,
@@ -77,12 +81,11 @@ class HourlyGMVViewSet(viewsets.ModelViewSet):
     queryset = HourlyGMV.objects.all()
     serializer_class = HourlyGMVSerializer
 
-    def _filter_gmv_hourly_query_params(self, queryset,
-                                        since=None, until=None,
-                                        last_date=None, next_date=None):
+    def _filter_gmv_hourly_query_params(self, queryset, query_params):
+        query_values = query_params.values()
+        since, until, last_date, next_date = query_values
         if all([since, until]):
-            if since > until:
-                return
+            if since > until: return 'error'
             data = queryset \
                 .filter(day__lte=until, day__gte=since)\
                 .values('hour')\
@@ -107,14 +110,14 @@ class HourlyGMVViewSet(viewsets.ModelViewSet):
         3 传参: since, until, 显示 某一段时间内加总的数据
         '''
         logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
-        query_params = { key: request.query_params.get(key)
-                        for key in ['since', 'until', 'last_date', 'next_date'] }
-        logger.debug(pprint.pformat(query_params))
+        query_params = OrderedDict()
+        keys = ['since', 'until', 'last_date', 'next_date']
+        for key in keys:
+            query_params[key] = request.query_params.get(key)
+        logger.debug('\033[96m query params:{} \033[0m'.format(query_params))
         data = self._filter_gmv_hourly_query_params(
-            self.queryset, since=query_params['since'], until=query_params['until'],
-            last_date=query_params['last_date'], next_date=query_params['next_date']
-        )
-        if not data:
+            self.queryset, query_params)
+        if data == 'error':
             context = {
                 'status': status.HTTP_406_NOT_ACCEPTABLE,
                 'msg': 'NOT ACCEPTABLE',
@@ -133,6 +136,91 @@ class HourlyGMVViewSet(viewsets.ModelViewSet):
 
 
 class NewestTmallViewSet(viewsets.ModelViewSet):
+    queryset = NewestTmall.objects.all()
+    serializer_class = NewestTmallSerializer
+
+    @list_route(methods=['get'], url_path='newest/tmall/price')
+    def get_newest_tmall_price(self, request, format=None):
+        '''
+        天猫最新价格:
+        要求必须带参数 product 查询
+        '''
+        logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
+        product = request.query_params.get('product')
+        if not product:
+            context = {
+                'status': status.HTTP_406_NOT_ACCEPTABLE,
+                'msg': 'NOT ACCEPTABLE',
+                'data': '参数错误',
+            }
+            return Response(context, status=context.get('status'))
+        items = self.queryset.filter(prod_name__icontains=product)
+        data = self.serializer_class(items, many=True).data
+        logger.debug('\033[96m newest tmall counts:{} \033[0m'.format(len(data)))
+        context = {
+            'status': status.HTTP_200_OK,
+            'msg': 'OK',
+            'data': data,
+        }
+        response = Response(context, status=context.get('status'))
+        logger.debug('\033[95m response headers : {} \033[0m'.format(_show_response_headers(response)))
+        return response
+
+
+class MonthlyRegionUserViewSet(viewsets.ModelViewSet):
+    queryset = MonthlyRegionUser.objects.all()
+    serializer_class = MonthlyRegionUserSerializer
+
+    def _filter_monthly_region_user(self, queryset, since, until):
+        #import pdb
+        #pdb.set_trace()
+        if not all([since, until]) or since > until: return 'error'
+        year_month = lambda x:(int(x[0]), int(x[1]))
+        since_year, since_month = year_month(since.split('-'))
+        until_year, until_month = year_month(until.split('-'))
+        if since_year == until_year:
+            queryset = queryset.filter(year=until_year,
+                                       month__gte=min(since_month, until_month),
+                                       month__lte=max(since_month, until_month))
+        else:
+            queryset = queryset.filter(year__gte=min(since_year, until_year),
+                                       year__lte=max(since_year, until_year),
+                                       month__gte=min(since_month, until_month),
+                                       month__lte=max(since_month, until_month))
+        return queryset
+
+    @list_route(methods=['get'], url_path='monthly/region/user')
+    def get_monthly_region_user(self, request, format=None):
+        '''
+        每月的地域新老用户比例
+        按 时间段 查询
+        '''
+        logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
+        since = request.query_params.get('since')
+        until = request.query_params.get('until')
+        logger.debug('\033[96m query params:since:{}, until:{} \033[0m'\
+                     .format(since, until))
+        data = self._filter_monthly_region_user(self.queryset, since, until)
+        if data == 'error':
+            context = {
+                'status': status.HTTP_406_NOT_ACCEPTABLE,
+                'msg': 'NOT ACCEPTABLE',
+                'data': '参数错误',
+            }
+            return Response(context, status=context.get('status'))
+        data = self.serializer_class(data, many=True).data
+        logger.debug('\033[96m monthly region user counts:{} \033[0m'.format(len(data)))
+        context = {
+            'status': status.HTTP_200_OK,
+            'msg': 'OK',
+            'data': data,
+        }
+        response = Response(context, status=context.get('status'))
+        logger.debug('\033[95m response headers : {} \033[0m'.format(_show_response_headers(response)))
+        return response
+
+
+class TmallIndustryTrendViewSet(viewsets.ModelViewSet):
     queryset = NewestTmall.objects.all()
     serializer_class = NewestTmallSerializer
 

@@ -10,6 +10,8 @@ router = DefaultRouter()
 router.register(r'v1', v1_api.views.DailyOrdersViewSet)
 router.register(r'v1', v1_api.views.HourlyGMVViewSet)
 router.register(r'v1', v1_api.views.NewestTmallViewSet)
+router.register(r'v1', v1_api.views.MonthlyRegionUserViewSet)
+router.register(r'v1', v1_api.views.TmallIndustryTrendViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
