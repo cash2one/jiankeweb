@@ -87,3 +87,56 @@ class TmallIndustryTrend(models.Model):
         db_table = 'shw_prc_sycm_trd_idx'
 
 
+class MonthlyImportedDurgSales(models.Model):
+    '''
+    每个月进口药的销售占比（剔除 待确认、拒签、退货、取消 订单)
+    '''
+    year = models.IntegerField(verbose_name='年份', null=True)
+    month = models.IntegerField(verbose_name='月', null=True)
+    sls_impt = models.DecimalField(verbose_name='进口药销售额',
+                                   max_digits=50, decimal_places=5, null=True)
+    qty_impt = models.DecimalField(verbose_name='进口药销售数量',
+                                   max_digits=50, decimal_places=5, null=True)
+    sls_ttl = models.DecimalField(verbose_name='所有商品销售额',
+                                   max_digits=50, decimal_places=5, null=True)
+    qty_ttl = models.DecimalField(verbose_name='有商品销售数量',
+                                   max_digits=50, decimal_places=5, null=True)
+    impr_per = models.DecimalField(verbose_name='进口药销售额占比%',
+                                   max_digits=50, decimal_places=5, null=True)
+
+    class Meta:
+        db_table = 'shw_opr_prds_impt_drugs'
+        unique_together = ('year', 'month')
+
+
+class DailyTopHundredGMV(models.Model):
+    '''
+    每天商品GMV前100
+    '''
+    day = models.DateField(verbose_name='日期')
+    product_code = models.BigIntegerField(verbose_name='商品编号')
+    gmv = models.DecimalField(verbose_name='流水',
+                                   max_digits=50, decimal_places=5, null=True)
+    qty = models.BigIntegerField(verbose_name='数量')
+    rank = models.IntegerField(verbose_name='排名', null=True)
+
+    class Meta:
+        db_table = 'shw_opr_ords_gmv_prds'
+
+
+class DailyOrdersOriginGMV(models.Model):
+    '''
+    每天订单来源的流水比例
+    '''
+    day = models.DateField(verbose_name='日期')
+    origin_type = models.IntegerField(verbose_name='订单来源类型', null=True)
+    ords_cnt = models.BigIntegerField(verbose_name='订单数')
+    gmv = models.DecimalField(verbose_name='订单流水金额',
+                                   max_digits=50, decimal_places=5, null=True)
+    user_cnt = models.BigIntegerField(verbose_name='客户数', null=True)
+
+    class Meta:
+        db_table = 'shw_opr_ords_gmv_orgn'
+        unique_together = ('day', 'origin_type')
+
+

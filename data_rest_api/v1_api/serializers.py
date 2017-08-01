@@ -3,7 +3,8 @@ from django.shortcuts import render
 from rest_framework import serializers
 
 from v1_api.models import DailyOrders, HourlyGMV, NewestTmall,\
-    MonthlyRegionUser, TmallIndustryTrend
+    MonthlyRegionUser, TmallIndustryTrend, MonthlyImportedDurgSales,\
+    DailyTopHundredGMV, DailyOrdersOriginGMV
 
 class DailyOrdersSerializer(serializers.ModelSerializer):
 
@@ -46,4 +47,28 @@ class   TmallIndustryTrendSerializer(serializers.ModelSerializer):
                   'pay_item_qty', 'item_cnt', 'avg_trd_idx',
                   'avg_pay_qty')
 
+
+class MonthlyImportedDurgSalesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = MonthlyImportedDurgSales
+        fields = ('id', 'year', 'month', 'sls_impt',
+                  'qty_impt', 'sls_ttl', 'qty_ttl',
+                  'impr_per')
+
+
+class DailyTopHundredGMVSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DailyTopHundredGMV
+        fields = ('id', 'day', 'product_code',
+                  'gmv', 'qty', 'rank')
+
+
+class DailyOrdersOriginGMVSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DailyOrdersOriginGMV
+        fields = ('id', 'day', 'origin_type', 'ords_cnt',
+                  'gmv', 'user_cnt')
 

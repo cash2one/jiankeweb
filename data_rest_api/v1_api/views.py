@@ -14,11 +14,8 @@ from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, list_route
 
-from v1_api.models import DailyOrders, HourlyGMV, NewestTmall, \
-    MonthlyRegionUser, TmallIndustryTrend
-from v1_api.serializers import DailyOrdersSerializer,\
-	HourlyGMVSerializer, NewestTmallSerializer, \
-    MonthlyRegionUserSerializer, TmallIndustryTrendSerializer
+from v1_api.models import *
+from v1_api.serializers import *
 
 from data_rest_api.settings import DB6_HOST, DB6_USER, DB6_PASSWD,\
     DB6, DB6_CHARSET
@@ -87,27 +84,27 @@ class HourlyGMVViewSet(viewsets.ModelViewSet):
     queryset = HourlyGMV.objects.all()
     serializer_class = HourlyGMVSerializer
 
-    def _filter_gmv_hourly_query_params(self, queryset, query_params):
+    def _filter_gmv_hourly_query_params(self, query_params):
         query_values = query_params.values()
         since, until, last_date, next_date = query_values
         if all([since, until]):
             if since > until: return 'error'
-            data = queryset \
+            data = self.queryset \
                 .filter(day__lte=until, day__gte=since)\
                 .values('hour')\
                 .annotate(gmv=Sum('gmv'),
                           user_cnt=Sum('user_cnt'),
                           ords_cnt=Sum('ords_cnt'))
         elif all([last_date, next_date]):
-            data = queryset.filter(day__in=[last_date, next_date])
-            data = HourlyGMVSerializer(data, many=True).data
+            data = self.queryset.filter(day__in=[last_date, next_date])
+            data = self.serializer_class(data, many=True).data
         else:
-            data = queryset.filter(day=datetime.date.today())
-            data = HourlyGMVSerializer(data, many=True).data
+            data = self.queryset.filter(day=datetime.date.today())
+            data = self.serializer_class(data, many=True).data
         return data
 
     @list_route(methods=['get'], url_path='gmv/hourly')
-    def get_gmv_hourly(self, request, format=None):
+    def get_hourly_gmv(self, request, format=None):
         '''
         GMV流水(每小时)
         目前接口对接三种情况：
@@ -121,8 +118,7 @@ class HourlyGMVViewSet(viewsets.ModelViewSet):
         for key in keys:
             query_params[key] = request.query_params.get(key)
         logger.debug('\033[96m query params:{} \033[0m'.format(query_params))
-        data = self._filter_gmv_hourly_query_params(
-            self.queryset, query_params)
+        data = self._filter_gmv_hourly_query_params(query_params)
         if data == 'error':
             context = {
                 'status': status.HTTP_406_NOT_ACCEPTABLE,
@@ -278,5 +274,26 @@ class TmallIndustryTrendViewSet(viewsets.ModelViewSet):
         logger.debug('\033[95m response headers : {} \033[0m'.format(_show_response_headers(response)))
         return response
 
+
+class MonthlyImportedDurgSalesViewSet(viewsets.ModelViewSet):
+    queryset = MonthlyImportedDurgSales.objects.all()
+    serializer_class = MonthlyImportedDurgSalesSerializer
+
+    @list_route(methods=['get'], url_path='monthly/imported/durg/sales/?')
+    def get_monthly_imported_drug_sales(self, request, format=None):
+        '''
+        每个月进口药的销售占比（剔除 待确认、拒签、退货、取消 订单）
+        '''
+        logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
+        data = self.serializer_class(self.queryset, many=True).data
+        logger.debug('\033[96m monthly imported durg sales counts:{} \033[0m'.format(len(data)))
+        context = {
+            'status': status.HTTP_200_OK,
+            'msg': 'OK',
+            'data': data,
+        }
+        response = Response(context, status=context.get('status'))
+        logger.debug('\033[95m response headers : {} \033[0m'.format(_show_response_headers(response)))
+        return response
 
 
