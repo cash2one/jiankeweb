@@ -37,9 +37,10 @@ class DailyOrdersViewSet(viewsets.ModelViewSet):
     queryset = DailyOrders.objects.all()
     serializer_class = DailyOrdersSerializer
 
-    def _filter_log_date(self, queryset, since, until):
+    def _filter_log_date(self, since, until):
         #date_list = queryset.extra({'operate_time':"date(OperatorTime)"}) \
         #    .values('operate_time').distinct()
+        queryset = self.queryset
         try:
             if all([since, until]):
                 if since > until: return 'error'
@@ -60,7 +61,7 @@ class DailyOrdersViewSet(viewsets.ModelViewSet):
         until = request.query_params.get('until')
         logger.debug('\033[96m query params:since:{}, until:{} \033[0m'\
                      .format(since, until))
-        data = self._filter_log_date(self.queryset, since, until)
+        data = self._filter_log_date(since, until)
         if data == 'error':
             context = {
                 'status': status.HTTP_406_NOT_ACCEPTABLE,
@@ -173,23 +174,26 @@ class MonthlyRegionUserViewSet(viewsets.ModelViewSet):
     queryset = MonthlyRegionUser.objects.all()
     serializer_class = MonthlyRegionUserSerializer
 
-    def _filter_monthly_region_user(self, queryset, since, until):
+    def _filter_monthly_region_user(self, since, until):
         #import pdb
         #pdb.set_trace()
+        queryset = self.queryset
         if not all([since, until]) or since > until: return 'error'
         year_month = lambda x:(int(x[0]), int(x[1]))
         since_year, since_month = year_month(since.split('-'))
         until_year, until_month = year_month(until.split('-'))
         logger.debug('\033[96m since:year:{}, month:{}; until: year:{}, month:{} \033[0m'\
                      .format(since_year, since_month, until_year, until_month))
+        if since_year == until_year and since_month == until_month: return queryset
         if since_year == until_year:
             queryset = queryset.filter(year=until_year,
                                        month__gte=min(since_month, until_month),
                                        month__lte=max(since_month, until_month))
         else:
             queryset = queryset.filter(year__gte=min(since_year, until_year),
-                                       year__lte=max(since_year, until_year),
-                                       month__gte=min(since_month, until_month),
+                                       year__lte=max(since_year, until_year))
+            if until_month == since_month: queryset = queryset.filter(month__lte=until_month)
+            else: queryset = queryset.filter(month__gte=min(since_month, until_month),
                                        month__lte=max(since_month, until_month))
         return queryset
 
@@ -204,7 +208,7 @@ class MonthlyRegionUserViewSet(viewsets.ModelViewSet):
         until = request.query_params.get('until')
         logger.debug('\033[96m query params:since:{}, until:{} \033[0m'\
                      .format(since, until))
-        data = self._filter_monthly_region_user(self.queryset, since, until)
+        data = self._filter_monthly_region_user(since, until)
         if data == 'error':
             context = {
                 'status': status.HTTP_406_NOT_ACCEPTABLE,
@@ -287,6 +291,67 @@ class MonthlyImportedDurgSalesViewSet(viewsets.ModelViewSet):
         logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
         data = self.serializer_class(self.queryset, many=True).data
         logger.debug('\033[96m monthly imported durg sales counts:{} \033[0m'.format(len(data)))
+        context = {
+            'status': status.HTTP_200_OK,
+            'msg': 'OK',
+            'data': data,
+        }
+        response = Response(context, status=context.get('status'))
+        logger.debug('\033[95m response headers : {} \033[0m'.format(_show_response_headers(response)))
+        return response
+
+
+class DailyTopHundredGMVViewSet(viewsets.ModelViewSet):
+    queryset = DailyTopHundredGMV.objects.all()
+    serializer_class = DailyTopHundredGMVSerializer
+
+    @list_route(methods=['get'], url_path='daily/top/hundred/gmv/?')
+    def get_daily_top_hundred_gmv(self, request, format=None):
+        '''
+        每天的GMV前100商品
+        必须参数： date
+        '''
+        logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
+        date = request.query_params.get('date')
+        if not date:
+            context = {
+                'status': status.HTTP_406_NOT_ACCEPTABLE,
+                'msg': 'NOT ACCEPTABLE',
+                'data': '请提供查询参数',
+            }
+            return Response(context, status=context.get('status'))
+        data = self.serializer_class(self.queryset.filter(day=date), many=True).data
+        logger.debug('\033[96m daily top hundred fmv counts:{} \033[0m'.format(len(data)))
+        context = {
+            'status': status.HTTP_200_OK,
+            'msg': 'OK',
+            'data': data,
+        }
+        response = Response(context, status=context.get('status'))
+        logger.debug('\033[95m response headers : {} \033[0m'.format(_show_response_headers(response)))
+        return response
+
+
+class DailyOrdersOriginGMVViewSet(viewsets.ModelViewSet):
+    queryset = DailyOrdersOriginGMV.objects.all()
+    serializer_class = DailyOrdersOriginGMVSerializer
+
+    @list_route(methods=['get'], url_path='daily/orders/origin/gmv/?')
+    def get_daily_orders_origin_gmv(self, request, format=None):
+        '''
+        每天的订单来源GMV占比
+        '''
+        logger.debug('\033[95m request client info : {} \033[0m'.format(_show_client_info(request)))
+        date = request.query_params.get('date')
+        if not date:
+            context = {
+                'status': status.HTTP_406_NOT_ACCEPTABLE,
+                'msg': 'NOT ACCEPTABLE',
+                'data': '请提供查询参数',
+            }
+            return Response(context, status=context.get('status'))
+        data = self.serializer_class(self.queryset.filter(day=date), many=True).data
+        logger.debug('\033[96m daily orders origin gmv counts:{} \033[0m'.format(len(data)))
         context = {
             'status': status.HTTP_200_OK,
             'msg': 'OK',

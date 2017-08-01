@@ -13,8 +13,8 @@ router.register(r'v1', v1_api.views.NewestTmallViewSet)
 router.register(r'v1', v1_api.views.MonthlyRegionUserViewSet)
 router.register(r'v1', v1_api.views.TmallIndustryTrendViewSet)
 router.register(r'v1', v1_api.views.MonthlyImportedDurgSalesViewSet)
-router.register(r'v1', v1_api.views.DailyTopHundredGMViewSet)
-router.register(r'v1', v1_api.views.DailyOrdersOriginGMViewSet)
+router.register(r'v1', v1_api.views.DailyTopHundredGMVViewSet)
+router.register(r'v1', v1_api.views.DailyOrdersOriginGMVViewSet)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
