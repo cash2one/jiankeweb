@@ -32,6 +32,10 @@ def _show_response_headers(response):
     response_headers = response.items()
     return response_headers
 
+def _trans_date_param_to_format_date(date_param):
+    format_date = datetime.datetime.strptime(date_param, '%Y-%m-%d').date()
+    return format_date
+
 
 class DailyOrdersViewSet(viewsets.ModelViewSet):
     queryset = DailyOrders.objects.all()
@@ -97,14 +101,20 @@ class HourlyGMVViewSet(viewsets.ModelViewSet):
                           user_cnt=Sum('user_cnt'),
                           ords_cnt=Sum('ords_cnt'))
         elif all([last_date, next_date]):
-            data = self.queryset.filter(day__in=[last_date, next_date])
-            data = self.serializer_class(data, many=True).data
+            last_date = _trans_date_param_to_format_date(last_date)
+            next_date = _trans_date_param_to_format_date(next_date)
+            data = {
+                str(last_date): self.serializer_class(
+                    self.queryset.filter(day=last_date), many=True).data,
+                str(next_date): self.serializer_class(
+                    self.queryset.filter(day=next_date), many=True).data,
+            }
         else:
             data = self.queryset.filter(day=datetime.date.today())
             data = self.serializer_class(data, many=True).data
         return data
 
-    @list_route(methods=['get'], url_path='gmv/hourly')
+    @list_route(methods=['get'], url_path='hourly/gmv')
     def get_hourly_gmv(self, request, format=None):
         '''
         GMV流水(每小时)
