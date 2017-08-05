@@ -250,8 +250,8 @@ class TmallIndustryTrendViewSet(viewsets.ModelViewSet):
                                passwd=DB6_PASSWD, db=DB6, charset=DB6_CHARSET)
             cursor = db.cursor()
             cursor.execute("select model_name, trade_index, pay_item_qty  \
-                           from industrys where third_category_id=\
-                           (select second_category_id from industry_third_category \
+                           from industrys where third_category_id in \
+                           (select id from industry_third_category \
                            where third_cate_name='{third_category}')"
                            .format(third_category=third_category))
             items = cursor.fetchall()

@@ -12,12 +12,13 @@ JIANKE_API_PREFIX = '/v1'
 
 
 skipped_targets = (
-        #'get_garages_car_flow_rate',
-        #'get_garages_car_flow_rate_history',
-        #'get_garage_car_flow_rate_history',
-	#'get_garages_car_count_by_card_type',
-	#'get_garage_car_count_by_card_type',
-	#'',
-        )
+    'get_daily_orders',
+    'get_hourly_gmv',
+    'get_newest_tmall_price',
+    'get_monthly_region_user',
+    'get_tmall_industry_trend',
+    'get_monthly_imported_drug_sales',
+    'get_daily_top_hundred_gmv',
+    )
 
 # vim: filetype=python
